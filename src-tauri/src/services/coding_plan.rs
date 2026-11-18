@@ -36,8 +36,9 @@ fn detect_provider(base_url: &str) -> Option<CodingPlanProvider> {
         Some(CodingPlanProvider::MiniMaxCn)
     } else if url.contains("api.minimax.io") {
         Some(CodingPlanProvider::MiniMaxEn)
-    } else if url.contains("opencode.ai/zen/go") {
-        // 同时覆盖 /zen/go 与 /zen/go/v1；Zen 按量版（/zen/v1）
+    } else if url.contains("opencode.ai/zen/go") || url.contains("opencode.ai/inference/go") {
+        // 覆盖 /zen/go、/zen/go/v1 与 /inference/go、/inference/go/v1、
+        // /inference/go/anthropic；Zen 按量版（/zen/v1 或 /inference/v1）
         // 没有任何用量/余额 API，刻意不命中。
         Some(CodingPlanProvider::OpencodeGo)
     } else {
@@ -615,7 +616,7 @@ pub async fn get_coding_plan_quota(
                 success: false,
                 tiers: vec![],
                 extra_usage: None,
-                error: None,
+                error: Some("Unknown coding plan provider".to_string()),
                 queried_at: None,
                 reset_credits: None,
             })
@@ -636,8 +637,8 @@ pub async fn get_coding_plan_quota(
 #[cfg(test)]
 mod tests {
     use super::{
-        detect_provider, parse_opencode_go_tiers, parse_zhipu_token_tiers, CodingPlanProvider,
-        TIER_FIVE_HOUR, TIER_MONTHLY, TIER_WEEKLY_LIMIT,
+        detect_provider, get_coding_plan_quota, parse_opencode_go_tiers, parse_zhipu_token_tiers,
+        CodingPlanProvider, TIER_FIVE_HOUR, TIER_MONTHLY, TIER_WEEKLY_LIMIT,
     };
     use serde_json::json;
 
@@ -652,6 +653,26 @@ mod tests {
             Some(CodingPlanProvider::OpencodeGo)
         ));
         assert!(detect_provider("https://opencode.ai/zen/v1").is_none());
+        // 现行文档地址 /inference/go（Anthropic 端 /anthropic，Chat 端 /v1）
+        // 也要命中；Zen 按量版 /inference/v1 不得命中。
+        assert!(matches!(
+            detect_provider("https://opencode.ai/inference/go/anthropic"),
+            Some(CodingPlanProvider::OpencodeGo)
+        ));
+        assert!(matches!(
+            detect_provider("https://opencode.ai/inference/go/v1"),
+            Some(CodingPlanProvider::OpencodeGo)
+        ));
+        assert!(detect_provider("https://opencode.ai/inference/v1").is_none());
+    }
+
+    #[tokio::test]
+    async fn unknown_coding_plan_base_reports_reason() {
+        let quota = get_coding_plan_quota("https://example.invalid/anthropic", "sk-test")
+            .await
+            .expect("unknown provider should not be an Err");
+        assert!(!quota.success);
+        assert_eq!(quota.error.as_deref(), Some("Unknown coding plan provider"));
     }
 
     #[test]

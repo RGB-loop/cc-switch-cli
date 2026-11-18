@@ -3248,7 +3248,7 @@ pub(crate) fn detect_coding_plan_provider_for_usage_query(base_url: &str) -> Opt
         || url.contains("api.minimax.com")
     {
         Some("minimax")
-    } else if url.contains("opencode.ai/zen/go") {
+    } else if url.contains("opencode.ai/zen/go") || url.contains("opencode.ai/inference/go") {
         Some("opencode_go")
     } else {
         None

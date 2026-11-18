@@ -7442,6 +7442,33 @@ fn opencode_go_templates_enable_token_plan_usage_query() {
 }
 
 #[test]
+fn coding_plan_usage_query_detects_opencode_go_inference_bases() {
+    for url in [
+        "https://opencode.ai/zen/go",
+        "https://opencode.ai/zen/go/v1",
+        "https://opencode.ai/inference/go",
+        "https://opencode.ai/inference/go/anthropic",
+        "https://opencode.ai/inference/go/v1",
+    ] {
+        assert_eq!(
+            detect_coding_plan_provider_for_usage_query(url),
+            Some("opencode_go"),
+            "{url}"
+        );
+    }
+    for url in [
+        "https://opencode.ai/zen/v1",
+        "https://opencode.ai/inference/v1",
+    ] {
+        assert_eq!(
+            detect_coding_plan_provider_for_usage_query(url),
+            None,
+            "{url}"
+        );
+    }
+}
+
+#[test]
 fn switching_from_opencode_go_template_clears_its_usage_default() {
     for app_type in [AppType::Claude, AppType::Codex, AppType::Pi] {
         let mut form = ProviderAddFormState::new(app_type.clone());
