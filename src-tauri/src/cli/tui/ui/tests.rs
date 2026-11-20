@@ -3220,18 +3220,21 @@ fn codex_provider_form_renders_toml_values_in_plaintext() {
     let mut app = App::new(Some(AppType::Codex));
     app.route = Route::Providers;
     app.focus = Focus::Content;
-    let mut form = crate::cli::tui::form::ProviderAddFormState::new(AppType::Codex);
-    form.focus = FormFocus::JsonPreview;
-    form.codex_preview_section = crate::cli::tui::form::CodexPreviewSection::Config;
-    form.extra = json!({
-        "settingsConfig": {
+    let provider = crate::provider::Provider::with_id(
+        "custom".into(),
+        "Custom".into(),
+        json!({
             "auth": {},
             "config": format!(
                 "experimental_bearer_token = \"{secret}\"\nmodel = \"gpt-5.4\"\n\n[cookies]\nsession = \"{plural_container_secret}\"\n"
             )
-        }
-    });
-    form.codex_model.set("gpt-5.4");
+        }),
+        None,
+    );
+    let mut form =
+        crate::cli::tui::form::ProviderAddFormState::from_provider(AppType::Codex, &provider);
+    form.focus = FormFocus::JsonPreview;
+    form.codex_preview_section = crate::cli::tui::form::CodexPreviewSection::Config;
     app.form = Some(FormState::ProviderAdd(form));
 
     let all = all_text(&render_with_size(
@@ -4402,11 +4405,11 @@ fn provider_form_fields_show_dashed_divider_before_common_snippet() {
     let _lock = lock_env();
     let _no_color = EnvGuard::remove("NO_COLOR");
 
-    let mut app = App::new(Some(AppType::Claude));
+    let mut app = App::new(Some(AppType::Gemini));
     app.route = Route::Providers;
     app.focus = Focus::Content;
     app.form = Some(crate::cli::tui::form::FormState::ProviderAdd(
-        crate::cli::tui::form::ProviderAddFormState::new(AppType::Claude),
+        crate::cli::tui::form::ProviderAddFormState::new(AppType::Gemini),
     ));
 
     let data = minimal_data(&app.app_type);
@@ -4504,20 +4507,18 @@ fn provider_form_json_preview_highlights_common_config_lines() {
     let _lock = lock_env();
     let _no_color = EnvGuard::remove("NO_COLOR");
 
-    let mut app = App::new(Some(AppType::Claude));
+    let mut app = App::new(Some(AppType::Gemini));
     app.route = Route::Providers;
     app.focus = Focus::Content;
-    let mut form = crate::cli::tui::form::ProviderAddFormState::new(AppType::Claude);
+    let mut form = crate::cli::tui::form::ProviderAddFormState::new(AppType::Gemini);
     form.focus = FormFocus::JsonPreview;
     form.include_common_config = true;
-    form.claude_api_key.set("sk-provider");
+    form.gemini_api_key.set("sk-provider");
     app.form = Some(FormState::ProviderAdd(form));
 
     let mut data = minimal_data(&app.app_type);
     data.config.common_snippet = r#"{
-        "env": {
-            "COMMON_FLAG": "1"
-        }
+        "COMMON_FLAG": "1"
     }"#
     .to_string();
 
@@ -4532,7 +4533,7 @@ fn provider_form_json_preview_highlights_common_config_lines() {
             common_bg = Some(buf[(x, y)].bg);
             common_indent_bg = x.checked_sub(1).map(|indent_x| buf[(indent_x, y)].bg);
         }
-        if let Some(x) = cell_column_of(&buf, y, "\"ANTHROPIC_AUTH_TOKEN\"") {
+        if let Some(x) = cell_column_of(&buf, y, "\"GEMINI_API_KEY\"") {
             provider_key_bg = Some(buf[(x, y)].bg);
         }
     }
@@ -4927,7 +4928,7 @@ fn configuration_page_groups_actions_with_three_unlabeled_dividers() {
     let _lang = use_test_language(Language::English);
     let _no_color = EnvGuard::remove("NO_COLOR");
 
-    let mut app = App::new(Some(AppType::Claude));
+    let mut app = App::new(Some(AppType::Gemini));
     app.route = Route::Config;
     app.focus = Focus::Content;
 
@@ -4962,7 +4963,7 @@ fn configuration_page_hides_dividers_while_filtering() {
     let _lang = use_test_language(Language::English);
     let _no_color = EnvGuard::remove("NO_COLOR");
 
-    let mut app = App::new(Some(AppType::Claude));
+    let mut app = App::new(Some(AppType::Gemini));
     app.route = Route::Config;
     app.focus = Focus::Content;
     app.filter.input.set("config".to_string());

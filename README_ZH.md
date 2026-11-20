@@ -6,7 +6,7 @@
 
 **通过交互式 TUI 或脚本化 CLI，统一管理 Claude Code、Codex、Gemini、OpenCode、Hermes、OpenClaw 和 Pi。**
 
-[![Version](https://img.shields.io/badge/version-5.11.2-blue.svg)](https://github.com/saladday/cc-switch-cli/releases)
+[![Version](https://img.shields.io/badge/version-5.11.4-blue.svg)](https://github.com/saladday/cc-switch-cli/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/saladday/cc-switch-cli/releases)
 [![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -70,6 +70,18 @@
       CC-Switch CLI 专属优惠：通过
       <a href="https://www.packyapi.com/register?aff=cc-switch-cli">此链接</a>
       注册，并在充值时填写优惠码 <code>cc-switch-cli</code>，即可享受 <b>9 折优惠</b>。
+    </td>
+  </tr>
+  <tr>
+    <td width="180">
+      <a href="https://www.ipwo.net/?ref=githubswitchcli">
+        <img src="assets/partners/logos/ipwo.png" alt="IPWO" width="150">
+      </a>
+    </td>
+    <td>
+      感谢 <b>IPWO</b> 赞助本项目！IPWO 可以免费测试，提供覆盖 <b>195+ 个国家和地区的 9000 万+ 活跃住宅 IP 资源</b>，支持动态住宅代理、静态住宅代理及不限量住宅代理，并兼容 HTTP(S) 和 SOCKS5 协议。<br/>
+      无论是 AI 工具开发、跨区域网络访问，还是 API 调试与数据采集，IPWO 都能为开发者提供灵活的住宅代理选择，帮助拓展不同地区的网络应用场景。<br/>
+      通过<a href="https://www.ipwo.net/?ref=githubswitchcli">此链接</a>访问 IPWO，使用优惠码 <code>0200</code>，即可<b>减免 10%</b>。
     </td>
   </tr>
   <tr>
@@ -413,11 +425,14 @@ cc-switch config show                # 显示配置
 cc-switch config path                # 显示配置文件路径
 cc-switch config validate            # 验证配置文件
 
-# 通用配置片段（跨所有供应商共享设置）
-# 会在适用时尝试刷新 live config（`--apply` 仅保留为兼容参数）
+# Claude：进入 TUI，编辑供应商，再打开 JSON 编辑器修改完整配置
+cc-switch --app claude
+# 读取旧版通用片段，按需复制到配置编辑器
 cc-switch --app claude config common show
-cc-switch --app claude config common set --snippet '{"env":{"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC":1},"includeCoAuthoredBy":false}'
-cc-switch --app claude config common clear
+
+# Codex / Gemini 仍支持通用片段
+cc-switch --app codex config common set --snippet 'model_reasoning_effort = "high"'
+cc-switch --app codex config common clear
 
 # 备份
 cc-switch config backup              # 创建备份（自动命名）

@@ -223,7 +223,13 @@ fn codex_oauth_account_for_display(provider: &super::form::ProviderAddFormState)
         .as_deref()
         .map(bounded_trimmed_text_for_display)
         .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| texts::tui_managed_accounts_follow_default().to_string())
+        .unwrap_or_else(|| {
+            if provider.is_codex_official_provider() {
+                texts::tui_codex_native_login().to_string()
+            } else {
+                texts::tui_managed_accounts_follow_default().to_string()
+            }
+        })
 }
 
 fn common_json_preview_value(app_type: &AppType, common_snippet: &str) -> Option<Value> {
@@ -232,13 +238,15 @@ fn common_json_preview_value(app_type: &AppType, common_snippet: &str) -> Option
     }
 
     match app_type {
-        AppType::Claude => serde_json::from_str::<Value>(common_snippet).ok(),
         AppType::Gemini => serde_json::from_str::<Value>(common_snippet)
             .ok()
             .map(|env| json!({ "env": env })),
-        AppType::Codex | AppType::OpenCode | AppType::Hermes | AppType::OpenClaw | AppType::Pi => {
-            None
-        }
+        AppType::Claude
+        | AppType::Codex
+        | AppType::OpenCode
+        | AppType::Hermes
+        | AppType::OpenClaw
+        | AppType::Pi => None,
     }
     .filter(Value::is_object)
 }
@@ -2017,6 +2025,9 @@ pub(crate) fn provider_field_label_and_value(
         ProviderAddField::CodexAdvancedDivider => "- - - - - - - - -".to_string(),
         ProviderAddField::HermesAdvancedDivider => "- - - - - - - - -".to_string(),
         ProviderAddField::CommonConfigDivider => "- - - - - - - - -".to_string(),
+        ProviderAddField::ClaudeInactiveFields => {
+            crate::t!("Inactive fields", "未应用字段").to_string()
+        }
         ProviderAddField::CommonSnippet => texts::tui_config_item_common_snippet().to_string(),
         ProviderAddField::IncludeCommonConfig => texts::tui_form_attach_common_config().to_string(),
         ProviderAddField::UsageQueryDivider => "- - - - - - - - -".to_string(),
@@ -2168,7 +2179,9 @@ pub(crate) fn provider_field_label_and_value(
         }
         ProviderAddField::HermesAdvancedDivider => "- - - - - - - - - -".to_string(),
         ProviderAddField::CommonConfigDivider => "- - - - - - - - - -".to_string(),
-        ProviderAddField::CommonSnippet => format!("{} ›", texts::tui_key_open()),
+        ProviderAddField::ClaudeInactiveFields | ProviderAddField::CommonSnippet => {
+            format!("{} ›", texts::tui_key_open())
+        }
         ProviderAddField::UsageQueryDivider => String::new(),
         ProviderAddField::TemplateDivider => String::new(),
         // Plain-text fallback; the row itself renders chip-styled spans and
